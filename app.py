@@ -576,13 +576,24 @@ def apply_dark_mode():
             }
             
             /* FORCE TEXT COLORS TO BLACK */
-            h1, h2, h3, h4, h5, h6, p, li, span, div, label {
+            h1, h2, h3, h4, h5, h6, p, li, label, .stMarkdown {
                 color: #000000 !important;
             }
             
-            /* FORCE METRICS TO BLACK - FIX FOR INVISIBLE TEXT */
-            [data-testid="stMetricLabel"], [data-testid="stMetricValue"] {
+            /* === THE FIX: FORCE METRIC CONTENT BLACK === */
+            /* This selector finds the metric container and forces everything inside to black */
+            [data-testid="stMetric"] * {
                 color: #000000 !important;
+            }
+
+            /* FORCE INPUT TEXT BLACK */
+            .stTextInput input, .stNumberInput input {
+                color: #000000 !important;
+            }
+
+            /* KEEP BUTTON TEXT WHITE (Revert global black setting for buttons) */
+            button, button p {
+                color: #ffffff !important;
             }
 
             /* BUTTONS - LIGHT MODE STYLE */
