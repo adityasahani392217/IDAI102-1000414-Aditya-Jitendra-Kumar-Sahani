@@ -527,22 +527,21 @@ def draw_turtle_image(percent: float) -> Image.Image:
 def apply_styles():
     """
     Apply global styles based on dark_mode state.
-    This ensures that inputs, sidebar, and metrics always contrast correctly.
     """
+    # ------------------ DARK MODE ------------------
     if st.session_state.dark_mode:
-        # --- DARK MODE CSS ---
         st.markdown(
             """
             <style>
-            /* Main Background */
+            /* Main Background - Dark */
             .stApp { background-color: #0E1117; }
             
-            /* Text Color - White */
+            /* GLOBAL TEXT - White */
             h1, h2, h3, h4, h5, h6, p, li, span, div, label, .stMarkdown {
                 color: #FAFAFA !important;
             }
             
-            /* Sidebar Background */
+            /* Sidebar Background - Dark */
             [data-testid="stSidebar"] {
                 background-color: #262730;
             }
@@ -550,12 +549,12 @@ def apply_styles():
                 color: #FAFAFA !important;
             }
             
-            /* Metrics */
+            /* Metrics - White */
             [data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
                 color: #FAFAFA !important;
             }
             
-            /* Inputs (Text, Number, Select) */
+            /* Input Fields - Dark Theme */
             .stTextInput input, .stNumberInput input, .stSelectbox div[data-baseweb="select"] {
                 color: #FAFAFA !important;
                 background-color: #262730 !important;
@@ -577,44 +576,57 @@ def apply_styles():
             """,
             unsafe_allow_html=True
         )
+        
+    # ------------------ LIGHT MODE (Main White, Sidebar Dark) ------------------
     else:
-        # --- LIGHT MODE CSS ---
         st.markdown(
             """
             <style>
-            /* Main Background */
+            /* Main Background - White */
             .stApp { background-color: #FFFFFF; }
             
-            /* Text Color - Black */
+            /* MAIN TEXT - Black (Excluded sidebar via scope if needed, but easier to override sidebar specifically) */
             h1, h2, h3, h4, h5, h6, p, li, span, div, label, .stMarkdown {
                 color: #000000 !important;
             }
             
-            /* Sidebar Background - Force Light Grey */
+            /* --- SIDEBAR OVERRIDES (DARK SIDEBAR) --- */
             [data-testid="stSidebar"] {
-                background-color: #F0F2F6 !important;
+                background-color: #262730 !important;
             }
-            /* Sidebar Text - Force Black */
-            [data-testid="stSidebar"] * {
-                color: #000000 !important;
+            /* FORCE ALL SIDEBAR TEXT TO WHITE */
+            [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3, 
+            [data-testid="stSidebar"] p, [data-testid="stSidebar"] label, [data-testid="stSidebar"] span, 
+            [data-testid="stSidebar"] div, [data-testid="stSidebar"] .stMarkdown {
+                color: #FFFFFF !important;
             }
             
-            /* Metrics */
+            /* --- METRICS (Black for Main Area) --- */
             [data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
                 color: #000000 !important;
             }
             
-            /* Inputs (Text, Number, Select) - Force Black Text on White BG */
-            input, .stSelectbox div, .stNumberInput input {
-                color: #000000 !important;
-                background-color: #FFFFFF !important;
-            }
-            /* Fix for Selectbox text */
-            div[data-baseweb="select"] > div {
-                color: #000000 !important;
+            /* --- INPUT FIELDS (Mixed Mode) --- */
+            
+            /* 1. Sidebar Inputs: Dark BG, White Text */
+            [data-testid="stSidebar"] input,
+            [data-testid="stSidebar"] .stSelectbox div,
+            [data-testid="stSidebar"] .stNumberInput input {
+                color: #FFFFFF !important;
+                background-color: #444444 !important; /* Slightly lighter than sidebar bg */
             }
             
-            /* Buttons (Enabled) - Blue */
+            /* 2. Main Area Inputs: White BG, Black Text */
+            /* We use :not() to exclude sidebar, or just rely on CSS specificity. 
+               Streamlit's main area is usually in .main or .block-container */
+            .main input, .main .stSelectbox div, .main .stNumberInput input {
+                 color: #000000 !important;
+                 background-color: #FFFFFF !important;
+                 border: 1px solid #ccc;
+            }
+
+            /* --- BUTTONS --- */
+            /* Blue Buttons */
             .stButton > button {
                 background-color: #2563EB !important;
                 color: white !important;
@@ -624,14 +636,14 @@ def apply_styles():
                 color: white !important;
             }
             
-            /* Disabled Buttons (Badges) - Light Grey BG, Dark Grey Text */
-            button:disabled {
+            /* Disabled Buttons (Badges in Main Area) - Light Grey */
+            .main button:disabled {
                 background-color: #E0E0E0 !important;
                 color: #555555 !important;
                 border: 1px solid #CCCCCC;
                 opacity: 1 !important;
             }
-            button:disabled p {
+            .main button:disabled p {
                 color: #555555 !important;
             }
             </style>
@@ -736,7 +748,6 @@ def main():
         st.markdown("---")
         
         # TOGGLE FOR DARK MODE
-        # We handle the toggle logic here. When this changes, script reruns, apply_styles reads new state.
         st.session_state.dark_mode = st.checkbox(
             "🌙 Dark Mode", value=st.session_state.dark_mode
         )
