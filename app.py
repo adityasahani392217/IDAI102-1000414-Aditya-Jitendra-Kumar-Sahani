@@ -48,7 +48,7 @@ def get_profile_file() -> str:
 def init_state():
     s = st.session_state
     if "profile_name" not in s:
-        s.profile_name = "Me"           # default profile
+        s.profile_name = "Me"
     if "age_group" not in s:
         s.age_group = "Adult (14-64)"
     if "goal_ml" not in s:
@@ -231,7 +231,6 @@ def set_manual_goal(goal_str: str):
         if val <= 0:
             raise ValueError
         st.session_state.goal_ml = val
-        # manual goal overrides weight flag
         st.session_state.use_weight_goal = False
         save_today_to_file()
         st.success(f"Daily goal set to {val} ml")
@@ -372,14 +371,12 @@ def compute_weekly_summary(history: dict):
 
 def compute_badges(history: dict, streak: int):
     badges = {}
-
     first_complete = any(intake >= goal for intake, goal in history.values())
     double_goal = any(intake >= 2 * goal for intake, goal in history.values())
     badges["First Day Complete"] = (first_complete, "Finish goal on any day.")
     badges["3-Day Streak"] = (streak >= 3, "Hit your goal 3 days in a row.")
     badges["7-Day Streak"] = (streak >= 7, "Hit your goal 7 days in a row.")
     badges["Double Goal Day"] = (double_goal, "Drink at least 2× your goal in a day.")
-
     return badges
 
 
@@ -394,7 +391,6 @@ def draw_turtle_image(percent: float) -> Image.Image:
     d = ImageDraw.Draw(img)
 
     # --- GLOW FOR DARK MODE ---
-    # Only draw the glow if we are actually in dark mode
     if s.dark_mode:
         glow_radius = 90
         center_x, center_y = 160, 110
@@ -523,127 +519,135 @@ def draw_turtle_image(percent: float) -> Image.Image:
                             fill=(random.randint(50, 255),
                                   random.randint(50, 255),
                                   random.randint(50, 255), 255))
-
     return img
 
 
-# ===================== DARK MODE + BUTTON COLORS =====================
+# ===================== STYLING ENGINE =====================
 
-# ===================== DARK MODE + BUTTON COLORS =====================
-
-def apply_dark_mode():
-    # ------------------ DARK MODE ------------------
+def apply_styles():
+    """
+    Apply global styles based on dark_mode state.
+    This ensures that inputs, sidebar, and metrics always contrast correctly.
+    """
     if st.session_state.dark_mode:
+        # --- DARK MODE CSS ---
         st.markdown(
             """
             <style>
-            /* MAIN APP BACKGROUND */
-            .stApp {
-                background-color: #0e1117;
+            /* Main Background */
+            .stApp { background-color: #0E1117; }
+            
+            /* Text Color - White */
+            h1, h2, h3, h4, h5, h6, p, li, span, div, label, .stMarkdown {
+                color: #FAFAFA !important;
             }
             
-            /* GLOBAL TEXT COLOR */
-            h1, h2, h3, h4, h5, h6, p, li, span, div, label, input, .stMarkdown {
-                color: #ffffff !important;
+            /* Sidebar Background */
+            [data-testid="stSidebar"] {
+                background-color: #262730;
+            }
+            [data-testid="stSidebar"] * {
+                color: #FAFAFA !important;
             }
             
-            /* SIDEBAR BACKGROUND */
-            section[data-testid="stSidebar"] {
+            /* Metrics */
+            [data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
+                color: #FAFAFA !important;
+            }
+            
+            /* Inputs (Text, Number, Select) */
+            .stTextInput input, .stNumberInput input, .stSelectbox div[data-baseweb="select"] {
+                color: #FAFAFA !important;
                 background-color: #262730 !important;
             }
             
-            /* METRICS (Values & Labels) */
-            [data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
-                color: #ffffff !important;
-            }
-            
-            /* BUTTONS (Enabled) */
+            /* Buttons (Enabled) */
             .stButton > button {
                 background-color: #4CAF50 !important;
                 color: white !important;
                 border: none;
             }
             
-            /* DISABLED BUTTONS (Badges) */
+            /* Disabled Buttons (Badges) */
             button:disabled {
-                background-color: #333333 !important;
-                color: #888888 !important;
+                background-color: #333 !important;
+                color: #888 !important;
             }
             </style>
             """,
-            unsafe_allow_html=True,
+            unsafe_allow_html=True
         )
-        
-    # ------------------ LIGHT MODE (Default) ------------------
     else:
+        # --- LIGHT MODE CSS ---
         st.markdown(
             """
             <style>
-            /* MAIN APP BACKGROUND */
-            .stApp {
-                background-color: #ffffff;
-            }
+            /* Main Background */
+            .stApp { background-color: #FFFFFF; }
             
-            /* GLOBAL TEXT COLOR - Force Black */
+            /* Text Color - Black */
             h1, h2, h3, h4, h5, h6, p, li, span, div, label, .stMarkdown {
                 color: #000000 !important;
             }
             
-            /* FORCE SIDEBAR BACKGROUND TO LIGHT GREY (Overrides Dark System Theme) */
-            section[data-testid="stSidebar"] {
-                background-color: #f0f2f6 !important;
+            /* Sidebar Background - Force Light Grey */
+            [data-testid="stSidebar"] {
+                background-color: #F0F2F6 !important;
             }
-            /* FORCE SIDEBAR TEXT TO BLACK */
-            section[data-testid="stSidebar"] * {
+            /* Sidebar Text - Force Black */
+            [data-testid="stSidebar"] * {
                 color: #000000 !important;
             }
             
-            /* METRICS FIX: Force Labels and Values to Black */
+            /* Metrics */
             [data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
                 color: #000000 !important;
             }
-            /* Target the specific div inside metric value for robustness */
-            [data-testid="stMetricValue"] > div {
+            
+            /* Inputs (Text, Number, Select) - Force Black Text on White BG */
+            input, .stSelectbox div, .stNumberInput input {
                 color: #000000 !important;
+                background-color: #FFFFFF !important;
             }
-
-            /* INPUT FIELDS: Text Black */
-            input, .stSelectbox, .stNumberInput, textarea {
+            /* Fix for Selectbox text */
+            div[data-baseweb="select"] > div {
                 color: #000000 !important;
             }
             
-            /* BUTTONS (Enabled) - Blue */
+            /* Buttons (Enabled) - Blue */
             .stButton > button {
-                background-color: #2563eb !important;
+                background-color: #2563EB !important;
                 color: white !important;
-                border: none;
             }
-            /* Target the p tag inside buttons to ensure it's white */
+            /* Ensure text inside button P tags is white */
             .stButton > button p {
                 color: white !important;
             }
             
-            /* DISABLED BUTTONS (Badges) - Fix for invisible text */
-            /* We force background to light grey and text to dark grey */
+            /* Disabled Buttons (Badges) - Light Grey BG, Dark Grey Text */
             button:disabled {
-                background-color: #e0e0e0 !important;
-                color: #333333 !important;
-                border-color: #cccccc !important;
+                background-color: #E0E0E0 !important;
+                color: #555555 !important;
+                border: 1px solid #CCCCCC;
                 opacity: 1 !important;
             }
             button:disabled p {
-                color: #333333 !important;
+                color: #555555 !important;
             }
             </style>
             """,
-            unsafe_allow_html=True,
+            unsafe_allow_html=True
         )
+
 
 # ===================== MAIN APP =====================
 
 def main():
     st.set_page_config(page_title="WaterBuddy", page_icon="💧", layout="wide")
     init_state()
+    
+    # APPLY CSS IMMEDIATELY
+    apply_styles()
 
     # profile selector FIRST, so files use correct suffix
     with st.sidebar:
@@ -660,8 +664,6 @@ def main():
         load_today_from_file()
         load_profile()
         st.session_state.data_loaded = True
-
-    apply_dark_mode()
 
     # ---------- SIDEBAR (rest of settings) ----------
     with st.sidebar:
@@ -732,10 +734,12 @@ def main():
         )
 
         st.markdown("---")
+        
+        # TOGGLE FOR DARK MODE
+        # We handle the toggle logic here. When this changes, script reruns, apply_styles reads new state.
         st.session_state.dark_mode = st.checkbox(
             "🌙 Dark Mode", value=st.session_state.dark_mode
         )
-        apply_dark_mode()
 
     # ---------- HEADER ----------
     st.markdown(
