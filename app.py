@@ -226,12 +226,12 @@ def recalc_goal_from_age_or_weight():
 
 
 def set_manual_goal(goal_str: str):
+    # FIXED: removed direct write to use_weight_goal (widget key)
     try:
         val = int(goal_str)
         if val <= 0:
             raise ValueError
         st.session_state.goal_ml = val
-        st.session_state.use_weight_goal = False
         save_today_to_file()
         st.success(f"Daily goal set to {val} ml")
     except ValueError:
@@ -510,8 +510,6 @@ def draw_turtle_image(percent: float) -> Image.Image:
 
 # ===================== STYLING ENGINE =====================
 
-# ===================== STYLING ENGINE =====================
-
 def apply_styles():
     """
     Apply global styles using CSS Variable overrides on .stApp.
@@ -691,10 +689,18 @@ def main():
             save_today_to_file()
             st.rerun()
 
-        st.checkbox("Use weight-based goal (ml = kg × 35)",
-                    key="use_weight_goal", on_change=recalc_goal_from_age_or_weight)
-        st.number_input("Weight (kg)", min_value=10, max_value=200,
-                        key="weight_kg", on_change=recalc_goal_from_age_or_weight)
+        st.checkbox(
+            "Use weight-based goal (ml = kg × 35)",
+            key="use_weight_goal",
+            on_change=recalc_goal_from_age_or_weight,
+        )
+        st.number_input(
+            "Weight (kg)",
+            min_value=10,
+            max_value=200,
+            key="weight_kg",
+            on_change=recalc_goal_from_age_or_weight,
+        )
 
         goal_input = st.text_input(
             "Manual goal (ml)",
