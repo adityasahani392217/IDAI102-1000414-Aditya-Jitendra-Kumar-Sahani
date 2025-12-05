@@ -391,8 +391,8 @@ def draw_turtle_image(percent: float) -> Image.Image:
     img = Image.new("RGBA", (320, 220), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
 
-    # --- ADDED: Background Glow for visibility in Dark Mode ---
-    # Draws a faint white circle behind the turtle so it pops on dark backgrounds
+    # --- GLOW FOR DARK MODE ---
+    # Only draw the glow if we are actually in dark mode
     if s.dark_mode:
         glow_radius = 90
         center_x, center_y = 160, 110
@@ -403,7 +403,7 @@ def draw_turtle_image(percent: float) -> Image.Image:
             ],
             fill=(255, 255, 255, 30) 
         )
-    # ----------------------------------------------------------
+    # --------------------------
 
     # water level
     water_top = int(170 - 100 * min(1.0, p))
@@ -539,12 +539,12 @@ def apply_dark_mode():
             }
             
             /* FORCE TEXT COLORS TO WHITE */
-            h1, h2, h3, h4, h5, h6, p, li, span, div {
+            h1, h2, h3, h4, h5, h6, p, li, span, div, label {
                 color: #ffffff !important;
             }
             
-            /* STREAMLIT WIDGET LABELS & INPUTS */
-            .stMarkdown, .stRadio label, .stCheckbox label, .stNumberInput label, .stTextInput label, .stSelectbox label {
+            /* TARGET METRICS SPECIFICALLY */
+            [data-testid="stMetricLabel"], [data-testid="stMetricValue"] {
                 color: #ffffff !important;
             }
             
@@ -574,12 +574,12 @@ def apply_dark_mode():
             }
             
             /* FORCE TEXT COLORS TO BLACK */
-            h1, h2, h3, h4, h5, h6, p, li, span {
+            h1, h2, h3, h4, h5, h6, p, li, span, div, label {
                 color: #000000 !important;
             }
             
-            /* STREAMLIT WIDGET LABELS */
-            .stMarkdown, .stRadio label, .stCheckbox label, .stNumberInput label, .stTextInput label, .stSelectbox label {
+            /* TARGET METRICS SPECIFICALLY */
+            [data-testid="stMetricLabel"], [data-testid="stMetricValue"] {
                 color: #000000 !important;
             }
 
